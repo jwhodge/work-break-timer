@@ -4,11 +4,6 @@ import "./App.css";
 const second = 1000;
 const minute = 60000;
 
-/* the major issue is setting the timer to count right and not be influenced by start date 
-ideas - update the start date on start/stop click
-      - create a variable to hold the current state of the counter and use that to calc time remain
-      - replace sessionPeriod with better variable se above*/
-
 const buttonMap = [
   {
     class: "btn",
@@ -109,8 +104,7 @@ class App extends React.Component {
     this.displayHandling = this.displayHandling.bind(this);
     this.timerHandling = this.timerHandling.bind(this);
     this.clickRouter = this.clickRouter.bind(this);
-    this.updateStartDate = this.updateStartDate.bind(this);
-    this.updateStartDate = this.updateStartDate.bind(this);
+    this.handleSessionBreaks = this.handleSessionBreaks.bind(this);
   }
 
   componentDidMount() {
@@ -154,18 +148,6 @@ class App extends React.Component {
   displayHandling() {
     this.setState({
       displayArr: dateToTime(this.state.counter),
-    });
-  }
-
-  updateStartDate() {
-    this.setState({
-      startDate: new Date(),
-    });
-  }
-
-  updateLeftToCount() {
-    this.setState({
-      leftToCount: this.state.counter,
     });
   }
 
@@ -261,9 +243,9 @@ class App extends React.Component {
       case "stopgo":
         this.setState((prevState) => ({
           clockRunning: !prevState.clockRunning,
+          leftToCount: this.state.counter,
+          startDate: new Date(),
         }));
-        this.updateStartDate();
-        this.updateLeftToCount();
         break;
       case "reset":
         this.resetTimer();
@@ -274,7 +256,20 @@ class App extends React.Component {
   }
 
   handleSessionBreaks() {
-    if (this.state.counter === 0) {
+    if (this.state.counter <= 0) {
+      if (this.state.sessionNotBreak) {
+        this.setState({
+          leftToCount: this.state.breakLengthMs,
+          startDate: new Date(),
+        });
+        console.log("break");
+      } else if (!this.state.sessionNotBreak) {
+        this.setState({
+          leftToCount: this.state.sessionLengthMs,
+          startDate: new Date(),
+        });
+        console.log("work");
+      }
       this.setState((prevState) => ({
         sessionNotBreak: !prevState.sessionNotBreak,
       }));
