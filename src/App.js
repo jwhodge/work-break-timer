@@ -68,7 +68,7 @@ function convertDateToTime(delta, startTime, currentTime) {
   return toGo;
 }
 
-function convertTimeToDate(ms) {
+/* function convertTimeToDate(ms) {
   let dateObj = new Date(ms);
   return dateObj;
 }
@@ -78,21 +78,21 @@ function countSeconds(startTime, currentTime) {
   let current = Date.parse(currentTime);
   let secsPassed = current - start;
   return secsPassed;
-}
+} */
 
 class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       sessionPeriod: 25,
+      sessionLengthMs: 1500000,
       breakPeriod: 5,
-      date: new Date(),
+      breakLengthMs: 300000,
       clockDate: new Date(),
       startDate: new Date(),
-      offsetDate: new Date(),
       /* counters */
       counter: 1500000,
-      offsetCounter: 0,
+      leftToCount: 0,
       /* clock toggles */
       clockRunning: false,
       sessionNotBreak: true,
@@ -104,14 +104,13 @@ class App extends React.Component {
     this.displayHandling = this.displayHandling.bind(this);
     this.timerHandling = this.timerHandling.bind(this);
     this.clickRouter = this.clickRouter.bind(this);
-    this.trackOffset = this.trackOffset.bind(this);
-    this.offsetTheDate = this.offsetTheDate.bind(this);
+    this.updateStartDate = this.updateStartDate.bind(this);
+    this.updateStartDate = this.updateStartDate.bind(this);
   }
 
   componentDidMount() {
     this.timerID = setInterval(() => {
       this.tick();
-      this.trackOffset();
       this.timerHandling();
       this.displayHandling();
       this.handleSessionBreaks();
@@ -124,13 +123,14 @@ class App extends React.Component {
     this.setState(() => {
       return {
         sessionPeriod: 25,
+        sessionLengthMs: 1500000,
         breakPeriod: 5,
-        date: new Date(),
+        breakLengthMs: 300000,
         clockDate: new Date(),
         startDate: new Date(),
         /* counters */
         counter: 1500000,
-        offsetCounter: 0,
+        leftToCount: 0,
         /* clock toggles */
         clockRunning: false,
         sessionNotBreak: true,
@@ -141,7 +141,6 @@ class App extends React.Component {
   }
 
   tick() {
-    this.setState({ date: new Date() });
     if (this.state.clockRunning) {
       this.setState({ clockDate: new Date() });
     }
@@ -153,18 +152,15 @@ class App extends React.Component {
     });
   }
 
-  trackOffset() {
+  updateStartDate() {
     this.setState({
-      offsetCounter: countSeconds(this.state.startDate, this.state.date),
+      startDate: new Date(),
     });
   }
 
-  offsetTheDate() {
-    let x = this.state.offsetCounter + Date.parse(this.state.startDate);
-    let date = convertTimeToDate(x);
-    console.log(date);
+  updateLeftToCount() {
     this.setState({
-      offsetDate: date,
+      leftToCount: this.state.counter,
     });
   }
 
@@ -173,16 +169,16 @@ class App extends React.Component {
       if (this.state.sessionNotBreak) {
         this.setState({
           counter: convertDateToTime(
-            convertInputToMsecs(this.state.sessionPeriod),
-            this.state.offsetDate,
+            this.state.leftToCount,
+            this.state.startDate,
             this.state.clockDate
           ),
         });
       } else {
         this.setState({
           counter: convertDateToTime(
-            convertInputToMsecs(this.state.breakPeriod),
-            this.state.offsetDate,
+            this.state.leftToCount,
+            this.state.startDate,
             this.state.clockDate
           ),
         });
@@ -227,23 +223,42 @@ class App extends React.Component {
     switch (stateAddress) {
       case "session":
         if (!this.state.clockRunning) {
-          this.setState({
-            sessionPeriod: this.state.sessionPeriod + change,
-          });
+          this.setState(
+            {
+              sessionPeriod: this.state.sessionPeriod + change,
+            },
+            () => {
+              this.setState({
+                sessionLengthMs: convertInputToMsecs(this.state.sessionPeriod),
+                leftToCount: convertInputToMsecs(this.state.sessionPeriod),
+                counter: convertInputToMsecs(this.state.sessionPeriod),
+              });
+            }
+          );
         }
         break;
       case "break":
         if (!this.state.clockRunning) {
-          this.setState({
-            breakPeriod: this.state.breakPeriod + change,
-          });
+          this.setState(
+            {
+              breakPeriod: this.state.breakPeriod + change,
+            },
+            () => {
+              this.setState({
+                breakLengthMs: convertInputToMsecs(this.state.breakPeriod),
+                leftToCount: convertInputToMsecs(this.state.breakPeriod),
+                counter: convertInputToMsecs(this.state.breakPeriod),
+              });
+            }
+          );
         }
         break;
       case "stopgo":
         this.setState((prevState) => ({
           clockRunning: !prevState.clockRunning,
         }));
-        this.offsetTheDate();
+        this.updateStartDate();
+        this.updateLeftToCount();
         break;
       case "reset":
         this.resetTimer();
