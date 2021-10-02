@@ -4,6 +4,11 @@ import "./App.css";
 const second = 1000;
 const minute = 60000;
 
+/* the major issue is setting the timer to count right and not be influenced by start date 
+ideas - update the start date on start/stop click
+      - create a variable to hold the current state of the counter and use that to calc time remain
+      - replace sessionPeriod with better variable se above*/
+
 const buttonMap = [
   {
     class: "btn",
