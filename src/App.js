@@ -209,33 +209,51 @@ class App extends React.Component {
     /* this switch selects the correct state and updates it */
     switch (stateAddress) {
       case "session":
-        if (!this.state.clockRunning) {
+        let sessionTime = this.state.sessionPeriod + change;
+        if (
+          this.state.clockRunning === false &&
+          sessionTime <= 60 &&
+          sessionTime >= 0
+        ) {
           this.setState(
             {
-              sessionPeriod: this.state.sessionPeriod + change,
+              sessionPeriod: sessionTime,
             },
             () => {
               this.setState({
                 sessionLengthMs: convertInputToMsecs(this.state.sessionPeriod),
-                leftToCount: convertInputToMsecs(this.state.sessionPeriod),
-                counter: convertInputToMsecs(this.state.sessionPeriod),
               });
+              if (this.state.sessionNotBreak) {
+                this.setState({
+                  leftToCount: convertInputToMsecs(this.state.breakPeriod),
+                  counter: convertInputToMsecs(this.state.breakPeriod),
+                });
+              }
             }
           );
         }
         break;
       case "break":
-        if (!this.state.clockRunning) {
+        let breakTime = this.state.breakPeriod + change;
+        if (
+          this.state.clockRunning === false &&
+          breakTime <= 60 &&
+          breakTime >= 0
+        ) {
           this.setState(
             {
-              breakPeriod: this.state.breakPeriod + change,
+              breakPeriod: breakTime,
             },
             () => {
               this.setState({
                 breakLengthMs: convertInputToMsecs(this.state.breakPeriod),
-                leftToCount: convertInputToMsecs(this.state.breakPeriod),
-                counter: convertInputToMsecs(this.state.breakPeriod),
               });
+              if (!this.state.sessionNotBreak) {
+                this.setState({
+                  leftToCount: convertInputToMsecs(this.state.breakPeriod),
+                  counter: convertInputToMsecs(this.state.breakPeriod),
+                });
+              }
             }
           );
         }
@@ -256,7 +274,7 @@ class App extends React.Component {
   }
 
   handleSessionBreaks() {
-    if (this.state.counter <= 0) {
+    if (this.state.counter <= 0 && this.state.clockRunning) {
       if (this.state.sessionNotBreak) {
         this.setState({
           leftToCount: this.state.breakLengthMs,
