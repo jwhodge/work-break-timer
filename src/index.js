@@ -7,6 +7,7 @@ import ReactFCCtest from "react-fcctest";
 ReactDOM.render(
   <React.StrictMode>
     <App />
+    <p>Built by Jonathan Hodge</p>
     <ReactFCCtest />
   </React.StrictMode>,
   document.getElementById("root")

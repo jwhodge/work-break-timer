@@ -1,3 +1,49 @@
 .App {
+  width: 300px;
+  border: 1px solid white;
+  border-radius: 7px;
   text-align: center;
+  background-color: rgb(41, 41, 41);
+}
+
+h1,
+h2,
+.numberDisplay {
+  font-family: "Rajdhani", sans-serif;
+}
+
+.numberDisplay {
+  color: greenyellow;
+  font-size: xx-large;
+}
+
+.Session {
+}
+
+.Break {
+}
+
+.Timer {
+  padding-bottom: 30px;
+}
+
+.Control {
+}
+.chat {
+  margin-top: 30px;
+}
+
+button {
+  background-color: transparent;
+  width: 60px;
+  height: 40px;
+  border-radius: 5px;
+}
+
+.control-wrapper,
+.Control {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
 }

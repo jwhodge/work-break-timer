@@ -1,5 +1,13 @@
 import React from "react";
 import "./App.css";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faPlus,
+  faMinus,
+  faUndoAlt,
+  faPlay,
+  faPause,
+} from "@fortawesome/free-solid-svg-icons";
 
 const second = 1000;
 const minute = 60000;
@@ -8,44 +16,40 @@ const buttonMap = [
   {
     class: "btn",
     id: "session-increment",
-    icon: "",
     value: "S+",
-    display: "Session Increment",
+    display: <FontAwesomeIcon icon={faPlus} size="lg" />,
   },
   {
     class: "btn",
     id: "session-decrement",
-    icon: "",
     value: "S-",
-    display: "Session Decrement",
+    display: <FontAwesomeIcon icon={faMinus} size="lg" />,
   },
   {
     class: "btn",
     id: "break-increment",
-    icon: "",
     value: "B+",
-    display: "Break Increment",
+    display: <FontAwesomeIcon icon={faPlus} size="lg" />,
   },
   {
     class: "btn",
     id: "break-decrement",
-    icon: "",
     value: "B-",
-    display: "Break Decrement",
+    display: <FontAwesomeIcon icon={faMinus} size="lg" />,
   },
   {
     class: "btn",
     id: "start_stop",
-    icon: "",
     value: "StopGo",
-    display: "Start/Stop",
+    display: <FontAwesomeIcon icon={faPlay} size="lg" />,
+    icon: <FontAwesomeIcon icon={faPause} size="lg" />,
   },
   {
     class: "btn",
     id: "reset",
     icon: "",
     value: "Reset",
-    display: "Reset",
+    display: <FontAwesomeIcon icon={faUndoAlt} size="lg" />,
   },
 ];
 
@@ -67,18 +71,6 @@ function convertDateToTime(delta, startTime, currentTime) {
   let toGo = delta + start - current;
   return toGo;
 }
-
-/* function convertTimeToDate(ms) {
-  let dateObj = new Date(ms);
-  return dateObj;
-}
-
-function countSeconds(startTime, currentTime) {
-  let start = Date.parse(startTime);
-  let current = Date.parse(currentTime);
-  let secsPassed = current - start;
-  return secsPassed;
-} */
 
 class App extends React.Component {
   constructor(props) {
@@ -213,7 +205,7 @@ class App extends React.Component {
         if (
           this.state.clockRunning === false &&
           sessionTime <= 60 &&
-          sessionTime >= 0
+          sessionTime > 0
         ) {
           this.setState(
             {
@@ -225,8 +217,8 @@ class App extends React.Component {
               });
               if (this.state.sessionNotBreak) {
                 this.setState({
-                  leftToCount: convertInputToMsecs(this.state.breakPeriod),
-                  counter: convertInputToMsecs(this.state.breakPeriod),
+                  leftToCount: convertInputToMsecs(this.state.sessionPeriod),
+                  counter: convertInputToMsecs(this.state.sessionPeriod),
                 });
               }
             }
@@ -238,7 +230,7 @@ class App extends React.Component {
         if (
           this.state.clockRunning === false &&
           breakTime <= 60 &&
-          breakTime >= 0
+          breakTime > 0
         ) {
           this.setState(
             {
@@ -291,6 +283,9 @@ class App extends React.Component {
       this.setState((prevState) => ({
         sessionNotBreak: !prevState.sessionNotBreak,
       }));
+      const audio = document.getElementById("alarm-sound");
+      audio.currentTime = 0;
+      audio.play();
     }
   }
 
@@ -299,41 +294,79 @@ class App extends React.Component {
       <div className="App">
         <h1 id="app-title">Work/Break Timer</h1>
         <div className="Session">
-          <h2 id="session-label">Session Length</h2>
-          <Button btnInfo={buttonMap[0]} passHandler={this.clickRouter} />
-          <Button btnInfo={buttonMap[1]} passHandler={this.clickRouter} />
-          <p id="session-length">{this.state.sessionPeriod}</p>
-        </div>
-        <div className="Break">
-          <h2 id="break-label">Break Length</h2>
-          <Button btnInfo={buttonMap[2]} passHandler={this.clickRouter} />
-          <Button btnInfo={buttonMap[3]} passHandler={this.clickRouter} />
-          <p id="break-length">{this.state.breakPeriod}</p>
-        </div>
-        <div className="Timer">
-          <h2 id="timer-label">Timer</h2>
-          <div id="time-left">
-            {this.state.displayArr[0]}:{this.state.displayArr[1]}
+          <h2 id="session-label">Work Time</h2>
+          <div className="control-wrapper">
+            <Button btnInfo={buttonMap[0]} passHandler={this.clickRouter} />
+            <p className="numberDisplay" id="session-length">
+              {this.state.sessionPeriod}
+            </p>
+            <Button btnInfo={buttonMap[1]} passHandler={this.clickRouter} />
           </div>
         </div>
+        <div className="Break">
+          <h2 id="break-label">Break Time</h2>
+          <div className="control-wrapper">
+            <Button btnInfo={buttonMap[2]} passHandler={this.clickRouter} />
+            <p className="numberDisplay" id="break-length">
+              {this.state.breakPeriod}
+            </p>
+            <Button btnInfo={buttonMap[3]} passHandler={this.clickRouter} />
+          </div>
+        </div>
+        <TimerDisplay
+          timingArr={this.state.displayArr}
+          breakTime={this.state.sessionNotBreak}
+        />
         <div className="Control">
           <Button btnInfo={buttonMap[4]} passHandler={this.clickRouter} />
           <Button btnInfo={buttonMap[5]} passHandler={this.clickRouter} />
         </div>
-        <p>
-          For the principles behind this work pattern see{" "}
-          <a
-            href="https://en.wikipedia.org/wiki/Pomodoro_Technique"
-            target="_blank"
-          >
-            Pomodoro Technique
-          </a>{" "}
-          on Wikipedia
-        </p>
-        <p>Built by Jonathan Hodge</p>
+        <audio
+          id="alarm-sound"
+          src="https://raw.githubusercontent.com/freeCodeCamp/cdn/master/build/testable-projects-fcc/audio/BeepSound.wav"
+          preload="auto"
+        />
+        <div className="chat">
+          <p>
+            For the principles behind this work pattern see{" "}
+            <a
+              href="https://en.wikipedia.org/wiki/Pomodoro_Technique"
+              target="_blank"
+            >
+              Pomodoro Technique
+            </a>{" "}
+            on Wikipedia
+          </p>
+        </div>
       </div>
     );
   }
+}
+
+function TimerDisplay(props) {
+  let minLeadZero = "";
+  let secLeadZero = "";
+  let displayBreaks = ["Work", "Break"];
+  let i = 0;
+  if (props.timingArr[1] < 10) {
+    secLeadZero = "0";
+  }
+  if (props.timingArr[0] < 10) {
+    minLeadZero = "0";
+  }
+  if (!props.breakTime) {
+    i = 1;
+  }
+  return (
+    <div className="Timer">
+      <h2 id="timer-label">{displayBreaks[i]}</h2>
+      <div className="numberDisplay" id="time-left">
+        {minLeadZero}
+        {props.timingArr[0]}:{secLeadZero}
+        {props.timingArr[1]}
+      </div>
+    </div>
+  );
 }
 
 class Button extends React.Component {
@@ -359,6 +392,7 @@ class Button extends React.Component {
         onClick={this.handleClick}
       >
         {btnArr.display}
+        {btnArr.icon}
       </button>
     );
   }
