@@ -17,10 +17,9 @@ This is an assignment for the freeCodeCamp Frontend Development Libraries Certif
 - CSS
 - Javascript
 - React
-- React Bootstrap (TBC)
 - FontAwesome
 
-I've used both class and functional components (in order to gain expereince with both hooks and traditional state managment). 
+This project gave me further expreince with state managment in react components. I made an effort to break the app into clear functions each with a specific purpose that is pottentially reusable. 
 
 ## Scripts
 
