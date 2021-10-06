@@ -58,7 +58,8 @@ function convertInputToMsecs(inputTime) {
   return msecs;
 }
 
-function dateToTime(msecs) {
+function dateToTime(input) {
+  let msecs = input;
   let mins = Math.floor(msecs / minute);
   let secs = Math.floor((msecs % minute) / second);
   let timeArr = [mins, secs];
@@ -111,6 +112,9 @@ class App extends React.Component {
     clearInterval(this.timerID);
   }
   resetTimer() {
+    const audio = document.getElementById("beep");
+    audio.pause();
+    audio.currentTime = 0;
     this.setState(() => {
       return {
         sessionPeriod: 25,
@@ -137,32 +141,22 @@ class App extends React.Component {
     }
   }
 
+  timerHandling() {
+    if (this.state.clockRunning) {
+      this.setState({
+        counter: convertDateToTime(
+          this.state.leftToCount,
+          this.state.startDate,
+          this.state.clockDate
+        ),
+      });
+    }
+  }
+
   displayHandling() {
     this.setState({
       displayArr: dateToTime(this.state.counter),
     });
-  }
-
-  timerHandling() {
-    if (this.state.clockRunning) {
-      if (this.state.sessionNotBreak) {
-        this.setState({
-          counter: convertDateToTime(
-            this.state.leftToCount,
-            this.state.startDate,
-            this.state.clockDate
-          ),
-        });
-      } else {
-        this.setState({
-          counter: convertDateToTime(
-            this.state.leftToCount,
-            this.state.startDate,
-            this.state.clockDate
-          ),
-        });
-      }
-    }
   }
 
   clickRouter(switchCase) {
@@ -266,24 +260,24 @@ class App extends React.Component {
   }
 
   handleSessionBreaks() {
-    if (this.state.counter <= 0 && this.state.clockRunning) {
+    if (this.state.counter === 0 && this.state.clockRunning) {
       if (this.state.sessionNotBreak) {
         this.setState({
-          leftToCount: this.state.breakLengthMs,
           startDate: new Date(),
+          leftToCount: this.state.breakLengthMs + 1000,
         });
         console.log("break");
       } else if (!this.state.sessionNotBreak) {
         this.setState({
-          leftToCount: this.state.sessionLengthMs,
           startDate: new Date(),
+          leftToCount: this.state.sessionLengthMs + 1000,
         });
         console.log("work");
       }
       this.setState((prevState) => ({
         sessionNotBreak: !prevState.sessionNotBreak,
       }));
-      const audio = document.getElementById("alarm-sound");
+      const audio = document.getElementById("beep");
       audio.currentTime = 0;
       audio.play();
     }
@@ -293,36 +287,38 @@ class App extends React.Component {
     return (
       <div className="App">
         <h1 id="app-title">Work/Break Timer</h1>
+        <div className="clock">
+          <TimerDisplay
+            timingArr={this.state.displayArr}
+            breakTime={this.state.sessionNotBreak}
+          />
+          <div className="Control">
+            <Button btnInfo={buttonMap[4]} passHandler={this.clickRouter} />
+            <Button btnInfo={buttonMap[5]} passHandler={this.clickRouter} />
+          </div>
+        </div>
         <div className="Session">
-          <h2 id="session-label">Work Time</h2>
+          <h3 id="session-label">Set Working Time</h3>
           <div className="control-wrapper">
-            <Button btnInfo={buttonMap[0]} passHandler={this.clickRouter} />
+            <Button btnInfo={buttonMap[1]} passHandler={this.clickRouter} />
             <p className="numberDisplay" id="session-length">
               {this.state.sessionPeriod}
             </p>
-            <Button btnInfo={buttonMap[1]} passHandler={this.clickRouter} />
+            <Button btnInfo={buttonMap[0]} passHandler={this.clickRouter} />
           </div>
         </div>
         <div className="Break">
-          <h2 id="break-label">Break Time</h2>
+          <h3 id="break-label">Set Break Time</h3>
           <div className="control-wrapper">
-            <Button btnInfo={buttonMap[2]} passHandler={this.clickRouter} />
+            <Button btnInfo={buttonMap[3]} passHandler={this.clickRouter} />
             <p className="numberDisplay" id="break-length">
               {this.state.breakPeriod}
             </p>
-            <Button btnInfo={buttonMap[3]} passHandler={this.clickRouter} />
+            <Button btnInfo={buttonMap[2]} passHandler={this.clickRouter} />
           </div>
         </div>
-        <TimerDisplay
-          timingArr={this.state.displayArr}
-          breakTime={this.state.sessionNotBreak}
-        />
-        <div className="Control">
-          <Button btnInfo={buttonMap[4]} passHandler={this.clickRouter} />
-          <Button btnInfo={buttonMap[5]} passHandler={this.clickRouter} />
-        </div>
         <audio
-          id="alarm-sound"
+          id="beep"
           src="https://raw.githubusercontent.com/freeCodeCamp/cdn/master/build/testable-projects-fcc/audio/BeepSound.wav"
           preload="auto"
         />
@@ -346,7 +342,11 @@ class App extends React.Component {
 function TimerDisplay(props) {
   let minLeadZero = "";
   let secLeadZero = "";
-  let displayBreaks = ["Work", "Break"];
+  let displayBreaks = [
+    ["Work", "work-color"],
+    ["Break", "break-color"],
+  ];
+  let lastMinute = "numberDisplay";
   let i = 0;
   if (props.timingArr[1] < 10) {
     secLeadZero = "0";
@@ -357,10 +357,16 @@ function TimerDisplay(props) {
   if (!props.breakTime) {
     i = 1;
   }
+  if (props.timingArr[0] === 0) {
+    lastMinute = "numberDisplay goRed";
+  }
   return (
     <div className="Timer">
-      <h2 id="timer-label">{displayBreaks[i]}</h2>
-      <div className="numberDisplay" id="time-left">
+      <h2 id="timer-label">
+        Session -{" "}
+        <span className={displayBreaks[i][1]}>{displayBreaks[i][0]}</span>
+      </h2>
+      <div className={lastMinute} id="time-left">
         {minLeadZero}
         {props.timingArr[0]}:{secLeadZero}
         {props.timingArr[1]}
@@ -379,7 +385,7 @@ class Button extends React.Component {
 
   handleClick(e) {
     e.stopPropagation();
-    this.props.passHandler(e.target.value);
+    this.props.passHandler(e.currentTarget.value);
   }
 
   render() {
