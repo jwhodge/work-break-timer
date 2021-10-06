@@ -2,7 +2,7 @@
 This project aims to build a timer that can be used to schedule regular breaks during work periods. It offers flexibility in length of the work and break periods, audio and visual indicators of when to rest or work and the ability to pause and resume.
 
 ## Online Demo
-A functioning deployment of the app is availble for use here: [Work Break Timer - Not yet deployed](not yet operational).
+A functioning deployment of the app is availble for use here: [Work Break Timer](https://jwhodge.github.io/work-break-timer/).
 
 ## Project Brief
 
